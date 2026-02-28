@@ -51,16 +51,24 @@
     let storage;
 
     // Cek Library saat load
-    window.onload = () => {
-        const statusDiv = document.getElementById('lib-status');
+    function checkMegaLib() {
         if (typeof mega !== 'undefined') {
-            statusDiv.innerHTML = '<span class="status-dot bg-success"></span>Sistem Siap';
-        } else {
-            statusDiv.innerHTML = '<span class="status-dot bg-danger"></span>Gagal Load';
+            return true;
+        } else if (window.megajs) {
+            // Beberapa versi bundle menggunakan nama megajs
+            window.mega = window.megajs;
+            return true;
         }
-    };
+        return false;
+    }
 
     async function handleLogin() {
+
+        if (!checkMegaLib()) {
+            alert("Library MEGA belum siap. Coba refresh halaman atau cek koneksi internet.");
+            return;
+        }
+        
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
         const btn = event.target;
