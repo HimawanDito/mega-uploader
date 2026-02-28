@@ -1,0 +1,41 @@
+body{
+  background:#0f172a;
+  font-family:sans-serif;
+  color:white;
+  display:flex;
+  justify-content:center;
+}
+
+.container{
+  background:#111827;
+  padding:25px;
+  border-radius:16px;
+  width:400px;
+}
+
+input, select, button{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  background:#22c55e;
+  color:white;
+  cursor:pointer;
+}
+
+.progress{
+  background:#1f2937;
+  margin-top:10px;
+  border-radius:8px;
+}
+
+.bar{
+  height:10px;
+  background:#22c55e;
+  width:0%;
+  border-radius:8px;
+}
