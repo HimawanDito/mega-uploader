@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEGA Side-Loader Uploader</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/megajs/1.1.3/main.browser-min.js"></script>
+    <style>
+        body { background: #f0f2f5; padding-top: 50px; }
+        .upload-card { max-width: 550px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        #log-container { max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="upload-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0 text-danger">MEGA Cloud Uploader</h4>
+            <div id="lib-status"><span class="status-dot bg-secondary"></span>Mengecek...</div>
+        </div>
+
+        <div id="login-section">
+            <div class="mb-3">
+                <input type="email" id="email" class="form-control" placeholder="Email MEGA">
+            </div>
+            <div class="mb-3">
+                <input type="password" id="password" class="form-control" placeholder="Password MEGA">
+            </div>
+            <button class="btn btn-danger w-100 fw-bold" onclick="handleLogin()">Masuk ke Akun</button>
+        </div>
+
+        <div id="upload-section" style="display: none;">
+            <div class="alert alert-success py-2 small">Terhubung sebagai: <b id="user-display"></b></div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Pilih Folder Tujuan:</label>
+                <select id="folder-select" class="form-select mb-3"></select>
+                
+                <label class="form-label small fw-bold">Pilih Berkas (Multi-upload):</label>
+                <input type="file" id="file-input" class="form-control" multiple>
+            </div>
+            <button class="btn btn-primary w-100 fw-bold" id="btn-upload" onclick="handleUpload()">Mulai Unggah</button>
+            <div id="log-container" class="mt-4 border-top pt-2"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let storage;
+
+    // Cek Library saat load
+    window.onload = () => {
+        const statusDiv = document.getElementById('lib-status');
+        if (typeof mega !== 'undefined') {
+            statusDiv.innerHTML = '<span class="status-dot bg-success"></span>Sistem Siap';
+        } else {
+            statusDiv.innerHTML = '<span class="status-dot bg-danger"></span>Gagal Load';
+        }
+    };
+
+    async function handleLogin() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const btn = event.target;
+
+        if(!email || !pass) return alert("Data tidak lengkap!");
+        
+        btn.disabled = true;
+        btn.innerText = "Mengautentikasi...";
+
+        storage = new mega.Storage({ email, password: pass, autologin: true });
+
+        storage.on('ready', () => {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('upload-section').style.display = 'block';
+            document.getElementById('user-display').innerText = email;
+            loadFolders();
+        });
+
+        storage.on('error', () => {
+            alert("Login Gagal! Periksa kembali Email/Password.");
+            btn.disabled = false;
+            btn.innerText = "Masuk ke Akun";
+        });
+    }
+
+    function loadFolders() {
+        const select = document.getElementById('folder-select');
+        select.innerHTML = '<option value="root">Root (Halaman Utama)</option>';
+        storage.root.children.filter(f => f.directory).forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.handle;
+            opt.innerText = f.name;
+            select.appendChild(opt);
+        });
+    }
+
+    async function handleUpload() {
+        const fileInput = document.getElementById('file-input');
+        const files = fileInput.files;
+        const folderHandle = document.getElementById('folder-select').value;
+        const log = document.getElementById('log-container');
+
+        if (files.length === 0) return alert("Pilih file!");
+
+        const target = folderHandle === 'root' ? storage.root : storage.find(folderHandle);
+        document.getElementById('btn-upload').disabled = true;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const logId = `log-${i}`;
+            log.innerHTML += `<div class="mb-2">
+                <div class="d-flex justify-content-between small"><span>${file.name}</span><span id="${logId}-p">0%</span></div>
+                <div class="progress" style="height: 5px;"><div id="${logId}-b" class="progress-bar bg-success" style="width: 0%"></div></div>
+            </div>`;
+
+            await new Promise((resolve) => {
+                const up = target.upload({ name: file.name, size: file.size }, file);
+                up.on('progress', s => {
+                    const p = Math.floor((s.bytesLoaded / s.bytesTotal) * 100);
+                    document.getElementById(`${logId}-b`).style.width = p + '%';
+                    document.getElementById(`${logId}-p`).innerText = p + '%';
+                });
+                up.on('complete', () => {
+                    document.getElementById(`${logId}-p`).innerText = "✅";
+                    resolve();
+                });
+                up.on('error', () => {
+                    document.getElementById(`${logId}-p`).innerText = "❌";
+                    resolve();
+                });
+            });
+        }
+        alert("Semua berkas selesai diunggah!");
+        document.getElementById('btn-upload').disabled = false;
+    }
+</script>
+</body>
+</html>
