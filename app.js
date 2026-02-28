@@ -1,22 +1,21 @@
-let mega;
+let megaClient;
 
-// tombol
-document.getElementById("loginBtn").addEventListener("click", login);
-document.getElementById("uploadBtn").addEventListener("click", upload);
+document.getElementById("loginBtn").onclick = login;
+document.getElementById("uploadBtn").onclick = upload;
 
 function login() {
 
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  mega = new Mega({
-    email: email,
-    password: password
+  megaClient = new mega({
+    email,
+    password
   });
 
-  mega.on("ready", () => {
+  megaClient.on("ready", () => {
     alert("Login sukses");
-    loadFolders(mega.root);
+    loadFolders(megaClient.root);
   });
 
 }
@@ -29,14 +28,13 @@ function loadFolders(node, path = "") {
 
     if (folder.directory) {
 
-      let option = document.createElement("option");
-      option.value = folder.nodeId;
-      option.textContent = path + folder.name;
+      let opt = document.createElement("option");
+      opt.value = folder.nodeId;
+      opt.textContent = path + folder.name;
 
-      select.appendChild(option);
+      select.appendChild(opt);
 
       loadFolders(folder, path + folder.name + "/");
-
     }
 
   });
@@ -48,7 +46,7 @@ function upload() {
   const files = document.getElementById("fileInput").files;
   const folderId = document.getElementById("folderSelect").value;
 
-  const target = mega.find(folderId);
+  const target = megaClient.find(folderId);
 
   [...files].forEach(file => {
 
@@ -65,10 +63,6 @@ function upload() {
 
     up.on("progress", p => {
       bar.style.width = (p * 100) + "%";
-    });
-
-    up.on("complete", () => {
-      bar.style.background = "cyan";
     });
 
   });
