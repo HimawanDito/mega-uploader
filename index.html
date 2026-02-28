@@ -50,18 +50,42 @@
 <script>
     let storage;
 
-    // Cek Library saat load
-    function checkMegaLib() {
-        if (typeof mega !== 'undefined') {
-            return true;
-        } else if (window.megajs) {
-            // Beberapa versi bundle menggunakan nama megajs
-            window.mega = window.megajs;
-            return true;
+    const CDN_SOURCES = [
+        "https://cdn.jsdelivr.net/npm/megajs@1.1.3/main.browser-min.js",
+        "https://unpkg.com/megajs@1.1.3/dist/main.browser-min.js",
+        "https://raw.githack.com/tonoti/megajs/master/dist/main.browser-min.js"
+    ];
+
+    function loadMegaLib(index = 0) {
+        if (index >= CDN_SOURCES.length) {
+            document.getElementById('lib-status').innerHTML = '<span class="status-dot bg-danger"></span>Gagal Total';
+            alert("Semua sumber library MEGA terblokir oleh internet Anda. Gunakan VPN atau ganti koneksi.");
+            return;
         }
-        return false;
+
+        const script = document.createElement('script');
+        script.src = CDN_SOURCES[index];
+        script.onload = () => {
+            console.log("Library dimuat dari: " + CDN_SOURCES[index]);
+            initApp();
+        };
+        script.onerror = () => {
+            console.warn("Gagal memuat dari sumber ke-" + (index + 1) + ". Mencoba cadangan...");
+            loadMegaLib(index + 1);
+        };
+        document.head.appendChild(script);
     }
 
+    function initApp() {
+        const badge = document.getElementById('lib-status');
+        // Pastikan variabel 'mega' tersedia
+        if (typeof mega !== 'undefined' || typeof megajs !== 'undefined') {
+            if (typeof mega === 'undefined') window.mega = megajs;
+            badge.innerHTML = '<span class="status-dot bg-success"></span>Sistem Siap';
+        }
+    }
+
+    window.onload = () => loadMegaLib(0);
     async function handleLogin() {
 
         if (!checkMegaLib()) {
