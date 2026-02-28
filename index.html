@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <title>MEGA Uploader</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- MEGA SDK -->
   <script src="https://cdn.jsdelivr.net/npm/megajs/dist/mega.min.js"></script>
+
 </head>
 <body>
 
@@ -15,18 +18,20 @@
   <input type="email" id="email" placeholder="Email MEGA">
   <input type="password" id="password" placeholder="Password">
 
-  <button onclick="login()">Login</button>
+  <button id="loginBtn">Login</button>
 
   <select id="folderSelect"></select>
 
   <input type="file" id="fileInput" multiple>
 
-  <button onclick="upload()">Upload</button>
+  <button id="uploadBtn">Upload</button>
 
   <div id="progressArea"></div>
 
 </div>
 
+<!-- app.js TARUH PALING BAWAH -->
 <script src="app.js"></script>
+
 </body>
 </html>
